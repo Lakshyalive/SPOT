@@ -7,7 +7,6 @@ Uses YOLOv8 for detection and ByteTrack (built into ultralytics) for tracking.
 
 import cv2
 import numpy as np
-from ultralytics import YOLO
 from collections import defaultdict
 import time
 
@@ -113,6 +112,9 @@ def process_video(
 
     Returns a summary dict with statistics.
     """
+
+    # Import YOLO lazily so Streamlit can start quickly on constrained cloud runtimes.
+    from ultralytics import YOLO
 
     # ── Load model ──────────────────────────────────────────────────────────
     model = YOLO(model_size)          # downloads automatically on first run
