@@ -1,0 +1,16 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+venv/
+
+# macOS
+.DS_Store
+
+# Local downloads/output assets
+downloads/
+
+# Local model weights
+yolov8*.pt
