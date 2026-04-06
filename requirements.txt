@@ -5,7 +5,7 @@
 
 # Core deep-learning / vision
 ultralytics>=8.0.0          # YOLOv8 + ByteTrack built-in
-opencv-python-headless>=4.8.0  # cloud-friendly OpenCV (no GUI libs)
+opencv-python>=4.8.0        # cv2 runtime (requires libgl1 on Linux)
 
 # Streamlit UI
 streamlit>=1.32.0
