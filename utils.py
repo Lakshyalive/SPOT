@@ -37,53 +37,52 @@ def download_video(url: str, output_dir: str = "downloads") -> str:
     """
     os.makedirs(output_dir, exist_ok=True)
 
-    # Output template — yt-dlp fills in the title
+    # Output template — yt-dlp fills in the title.
     out_template = os.path.join(output_dir, "%(title).60s.%(ext)s")
 
-    # Try high-quality stream + merge first.
-    primary_cmd = [
+    # Keep downloads progressive-only to avoid ffmpeg merge requirement on cloud.
+    base_cmd = [
         "yt-dlp",
         "--no-playlist",
-        "-f", "bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-        "--merge-output-format", "mp4",
-        "-o", out_template,
-        "--print", "after_move:filepath",   # prints final path(s) to stdout
-        url,
-    ]
-    primary = subprocess.run(primary_cmd, capture_output=True, text=True)
-
-    # Collect all existing file paths reported by yt-dlp.
-    reported = []
-    for line in (primary.stdout or "").splitlines():
-        path = line.strip()
-        if path and os.path.exists(path):
-            reported.append(path)
-
-    # If merge worked, prefer a merged mp4 path.
-    mp4_reported = [p for p in reported if p.lower().endswith(".mp4")]
-    if mp4_reported:
-        return max(mp4_reported, key=os.path.getsize)
-
-    # Fallback when ffmpeg isn't available for merge:
-    # request a single progressive file that does not need merging.
-    fallback_cmd = [
-        "yt-dlp",
-        "--no-playlist",
-        "-f", "best[ext=mp4]/best",
+        "--extractor-retries", "3",
+        "--fragment-retries", "3",
+        "--add-header", "User-Agent:Mozilla/5.0",
         "-o", out_template,
         "--print", "after_move:filepath",
-        url,
     ]
-    fallback = subprocess.run(fallback_cmd, capture_output=True, text=True)
 
-    fallback_reported = []
-    for line in (fallback.stdout or "").splitlines():
-        path = line.strip()
-        if path and os.path.exists(path):
-            fallback_reported.append(path)
+    # Try multiple extraction strategies. Some YouTube videos fail on one
+    # client profile but succeed with another.
+    attempts = [
+        [
+            "--extractor-args", "youtube:player_client=android,web",
+            "-f", "best[ext=mp4][height<=720]/best[height<=720]/best",
+        ],
+        [
+            "--extractor-args", "youtube:player_client=tv_embedded,android",
+            "-f", "best[ext=mp4]/best",
+        ],
+        [
+            "-f", "best[ext=mp4]/best",
+        ],
+    ]
 
-    if fallback_reported:
-        return max(fallback_reported, key=os.path.getsize)
+    errors = []
+    for extra in attempts:
+        cmd = base_cmd + extra + [url]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        reported = []
+        for line in (result.stdout or "").splitlines():
+            path = line.strip()
+            if path and os.path.exists(path):
+                reported.append(path)
+
+        if reported:
+            return max(reported, key=os.path.getsize)
+
+        if result.returncode != 0 and result.stderr:
+            errors.append(result.stderr.strip())
 
     # As a last resort, use the largest playable video file in downloads.
     candidates = []
@@ -99,13 +98,13 @@ def download_video(url: str, output_dir: str = "downloads") -> str:
         return max(candidates, key=os.path.getsize)
 
     # Bubble up the most helpful error details.
-    errors = []
-    if primary.returncode != 0 and primary.stderr:
-        errors.append(primary.stderr.strip())
-    if fallback.returncode != 0 and fallback.stderr:
-        errors.append(fallback.stderr.strip())
     detail = "\n\n".join(errors) if errors else "No video file was produced."
-    raise RuntimeError(f"yt-dlp failed to produce a playable video file.\n{detail}")
+    raise RuntimeError(
+        "yt-dlp failed to produce a playable video file. "
+        "This often happens when YouTube blocks server-side requests (HTTP 403). "
+        "Try another public video URL or upload a local file instead.\n"
+        f"{detail}"
+    )
 
 
 # ─────────────────────────────────────────────
