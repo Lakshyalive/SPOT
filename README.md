@@ -5,6 +5,8 @@
 Uses **YOLOv8** for detection and **ByteTrack** for persistent ID tracking,
 wrapped in a clean **Streamlit** web UI.
 
+Live app: https://spotapp.streamlit.app/
+
 ---
 
 ## Project Structure
@@ -66,6 +68,7 @@ Open your browser to `http://localhost:8501`
 ## How to Use
 
 1. **Upload a video** (MP4 / AVI / MOV) **or paste a YouTube URL**.
+   - Note: YouTube URL download support is currently under work.
 2. Adjust settings in the left sidebar:
    - **Model** – `yolov8n` is fastest; `yolov8m` is most accurate
    - **Confidence** – lower detects more, higher detects fewer (but surer)
@@ -91,6 +94,7 @@ Open your browser to `http://localhost:8501`
 - Very fast motion or motion blur may cause missed detections.
 - Works best on 480p–720p video.
 - Does not perform team classification or re-identification across full video cuts.
+- YouTube URL download feature is under active development and may fail for some links.
 
 ---
 
