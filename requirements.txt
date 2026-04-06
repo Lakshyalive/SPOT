@@ -1,0 +1,20 @@
+# ─────────────────────────────────────────────────────────────────
+#  requirements.txt  –  Sports Multi-Object Tracker
+#  Install with:  pip install -r requirements.txt
+# ─────────────────────────────────────────────────────────────────
+
+# Core deep-learning / vision
+ultralytics>=8.0.0          # YOLOv8 + ByteTrack built-in
+opencv-python>=4.8.0        # video I/O and drawing
+
+# Streamlit UI
+streamlit>=1.32.0
+
+# Scientific helpers (ultralytics pulls these too, listed for clarity)
+numpy>=1.24.0
+Pillow>=9.5.0
+torch>=2.0.0                # PyTorch – CPU version is fine for moderate video lengths
+torchvision>=0.15.0
+
+# Video download (optional – only needed for YouTube URL feature)
+yt-dlp>=2024.1.0
