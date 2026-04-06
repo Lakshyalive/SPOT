@@ -55,11 +55,11 @@ def download_video(url: str, output_dir: str = "downloads") -> str:
     # client profile but succeed with another.
     attempts = [
         [
-            "--extractor-args", "youtube:player_client=android,web",
+            "--extractor-args", "youtube:player_client=web;formats=missing_pot",
             "-f", "best[ext=mp4][height<=720]/best[height<=720]/best",
         ],
         [
-            "--extractor-args", "youtube:player_client=tv_embedded,android",
+            "--extractor-args", "youtube:player_client=web",
             "-f", "best[ext=mp4]/best",
         ],
         [
