@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 from collections import defaultdict
 import time
+import importlib.util
 
 
 # ─────────────────────────────────────────────
@@ -47,7 +48,10 @@ def draw_box(frame: np.ndarray, x1, y1, x2, y2,
     cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness=2)
 
     # Label text
-    text = f"ID:{track_id} {label} {conf:.0%}"
+    if track_id >= 0:
+        text = f"ID:{track_id} {label} {conf:.0%}"
+    else:
+        text = f"{label} {conf:.0%}"
     (tw, th), baseline = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX,
                                           0.55, 1)
 
@@ -140,6 +144,7 @@ def process_video(
     frame_idx       = 0
     start_time      = time.time()
     last_frame      = None                # keep last annotated frame for display
+    use_tracking    = importlib.util.find_spec("lap") is not None
 
     # ── Process frames ───────────────────────────────────────────────────────
     while True:
@@ -154,15 +159,35 @@ def process_video(
             out.write(frame)
             continue
 
-        # ── Run YOLO + ByteTrack ─────────────────────────────────────────────
-        results = model.track(
-            source=frame,
-            persist=True,           # keeps track IDs consistent across calls
-            conf=confidence,
-            classes=classes,
-            tracker="bytetrack.yaml",
-            verbose=False,
-        )
+        # ── Run YOLO (+ ByteTrack when available) ────────────────────────────
+        if use_tracking:
+            try:
+                results = model.track(
+                    source=frame,
+                    persist=True,           # keeps track IDs consistent across calls
+                    conf=confidence,
+                    classes=classes,
+                    tracker="bytetrack.yaml",
+                    verbose=False,
+                )
+            except ModuleNotFoundError as exc:
+                # Streamlit Cloud may lack lap wheels for latest Python versions.
+                if getattr(exc, "name", "") != "lap":
+                    raise
+                use_tracking = False
+                results = model.predict(
+                    source=frame,
+                    conf=confidence,
+                    classes=classes,
+                    verbose=False,
+                )
+        else:
+            results = model.predict(
+                source=frame,
+                conf=confidence,
+                classes=classes,
+                verbose=False,
+            )
 
         annotated = frame.copy()
 
@@ -180,7 +205,8 @@ def process_video(
                 label = model.names[int(cls_id)]
 
                 track_id = int(ids[i]) if len(ids) > i else -1
-                all_ids_seen.add(track_id)
+                if track_id >= 0:
+                    all_ids_seen.add(track_id)
 
                 # Centre point for trail
                 cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
