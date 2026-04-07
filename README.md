@@ -7,6 +7,9 @@ wrapped in a clean **Streamlit** web UI.
 
 Live app: https://spotapp.streamlit.app/
 
+## Demo Video
+Watch here: [SPOT Demo Video](https://drive.google.com/file/d/1iiHAtASq8IUMNXDqkXXBbg3SLNSTafaq/view?usp=sharing)
+
 ---
 
 ## Project Structure
