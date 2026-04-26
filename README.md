@@ -8,7 +8,8 @@ wrapped in a clean **Streamlit** web UI.
 Live app: https://spotapp.streamlit.app/
 
 ## Demo Video
-Watch here: [SPOT Demo Video](https://drive.google.com/file/d/1iiHAtASq8IUMNXDqkXXBbg3SLNSTafaq/view?usp=sharing)
+
+https://github.com/user-attachments/assets/34d96622-7c95-4042-b60c-9932cb84376f
 
 ---
 
